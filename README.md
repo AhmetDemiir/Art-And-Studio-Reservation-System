@@ -43,8 +43,4 @@ Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları i
 * **Şifre:** Admin123!
 
 ## 👥 Geliştirici Ekibi
-Bu proje, 4 kişilik bir ekibin ortak çalışmasıyla geliştirilmiştir:
-* **Proje Yöneticisi ve Dokümantasyon:** Ahmet Demir
-* **Veritabanı Mimarı:** [İsim Eklenecek]
-* **Backend Geliştirici:** [İsim Eklenecek]
-* **Arayüz (UI) Tasarımcısı:** [İsim Eklenecek]
+Bu proje, 4 kişilik bir ekibin ortak çalışmasıyla geliştirilmiştir.
