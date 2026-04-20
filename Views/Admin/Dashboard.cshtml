@@ -1,0 +1,154 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Yönetim Paneli";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Yönetici Özet Raporu</h1>
+    <div class="d-flex gap-2">
+        <a asp-controller="AdminArtwork" asp-action="Index" class="btn btn-outline-primary">Eserleri Yönet</a>
+        <a asp-controller="AdminWorkshop" asp-action="Index" class="btn btn-outline-primary">Etkinlikleri Yönet</a>
+        <a asp-controller="SupportTicket" asp-action="AdminTickets" class="btn btn-dark">Gelen Destek Talepleri</a>
+        <a asp-controller="Admin" asp-action="Orders" class="btn btn-outline-dark">Sipariş Raporu</a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">En Çok Favorilenen Eserler</h2>
+                @if (!Model.TopFavoritedArtworks.Any())
+                {
+                    <p class="text-muted mb-0">Veri bulunmuyor.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Eser</th>
+                                    <th>Sanatçı</th>
+                                    <th class="text-end">Favori</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.TopFavoritedArtworks)
+                                {
+                                    <tr>
+                                        <td><a asp-controller="Artwork" asp-action="Details" asp-route-id="@item.ArtworkId" class="text-decoration-none">@item.Title</a></td>
+                                        <td>@item.ArtistName</td>
+                                        <td class="text-end fw-semibold">@item.Count</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">En Çok Yorum Alan Eserler</h2>
+                @if (!Model.TopReviewedArtworks.Any())
+                {
+                    <p class="text-muted mb-0">Veri bulunmuyor.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Eser</th>
+                                    <th>Sanatçı</th>
+                                    <th class="text-end">Yorum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.TopReviewedArtworks)
+                                {
+                                    <tr>
+                                        <td><a asp-controller="Artwork" asp-action="Details" asp-route-id="@item.ArtworkId" class="text-decoration-none">@item.Title</a></td>
+                                        <td>@item.ArtistName</td>
+                                        <td class="text-end fw-semibold">@item.Count</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Etkinlik Bazlı Doluluk ve Memnuniyet</h2>
+        @if (!Model.WorkshopStats.Any())
+        {
+            <p class="text-muted mb-0">Atölye verisi bulunmuyor.</p>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var item in Model.WorkshopStats)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="border rounded p-3 h-100">
+                            <h3 class="h6 mb-2">@item.Title</h3>
+                            <p class="mb-1">Toplam Rezervasyon: <strong>@item.TotalReservations</strong></p>
+                            <p class="mb-1">Katılımcı / Kapasite: <strong>@item.ReservedCount / @item.TotalCapacity</strong></p>
+                            <p class="mb-2">Ortalama Puan: <strong>@item.AverageRating.ToString("0.0")/5</strong></p>
+                            <div class="progress" role="progressbar" aria-valuenow="@item.OccupancyRate" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar bg-success" style="width:@item.OccupancyRate%;">%@item.OccupancyRate.ToString("0.0")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <h2 class="h5 mb-3">Son Satın Alımlar</h2>
+        @if (!Model.RecentOrders.Any())
+        {
+            <p class="text-muted mb-0">Henüz sipariş kaydı bulunmuyor.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sipariş No</th>
+                            <th>Kullanıcı</th>
+                            <th>Eser</th>
+                            <th class="text-end">Tutar</th>
+                            <th>Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.RecentOrders)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.BuyerName</td>
+                                <td>@order.ArtworkTitle</td>
+                                <td class="text-end">@order.TotalAmount.ToString("C0")</td>
+                                <td>@order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

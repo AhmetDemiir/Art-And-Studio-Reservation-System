@@ -1,0 +1,72 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.Order>
+@{
+    ViewData["Title"] = "Siparişlerim";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Siparişlerim</h1>
+    <a asp-controller="Artwork" asp-action="Index" class="btn btn-outline-dark">Eserlere Git</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Henüz siparişin bulunmuyor.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var order in Model)
+        {
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <div>
+                            <strong>@order.OrderNumber</strong>
+                            <span class="text-muted ms-2">@order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                        <span class="badge bg-success">@order.Status</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            @foreach (var item in order.OrderItems)
+                            {
+                                var imageUrl = item.Artwork.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                                    ?? item.Artwork.Images.FirstOrDefault()?.ImageUrl
+                                    ?? "https://via.placeholder.com/300x200?text=Artwork";
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="border rounded p-2 h-100">
+                                        <img src="@imageUrl" alt="@item.Artwork.Title" class="img-fluid rounded mb-2" style="height: 140px; width: 100%; object-fit: cover;" />
+                                        <h3 class="h6 mb-1">@item.Artwork.Title</h3>
+                                        <p class="mb-1 text-muted">Adet: @item.Quantity</p>
+                                        <p class="mb-0 fw-semibold">@item.TotalPrice.ToString("C0")</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <hr />
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                            <div>
+                                <span class="text-muted">Odeme:</span>
+                                <strong>@order.Payments.FirstOrDefault()?.PaymentMethod</strong>
+                            </div>
+                            <div>
+                                <span class="text-muted">Toplam:</span>
+                                <strong>@order.TotalAmount.ToString("C0")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

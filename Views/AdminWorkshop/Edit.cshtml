@@ -1,0 +1,65 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.WorkshopManageViewModel
+@{
+    ViewData["Title"] = "Etkinliği Düzenle";
+}
+
+<h1 class="h4 mb-3">Etkinliği Düzenle</h1>
+
+<form asp-action="Edit" method="post" class="card card-body shadow-sm">
+    @Html.AntiForgeryToken()
+    <input asp-for="WorkshopEventId" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label asp-for="Title" class="form-label">Etkinlik Başlığı</label>
+            <input asp-for="Title" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="WorkshopCategoryId" class="form-label">Kategori</label>
+            <select asp-for="WorkshopCategoryId" asp-items="ViewBag.Categories" class="form-select"></select>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Location" class="form-label">Konum</label>
+            <input asp-for="Location" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="BasePrice" class="form-label">Temel Ücret</label>
+            <input asp-for="BasePrice" class="form-control" />
+        </div>
+        <div class="col-md-3 form-check mt-5 ps-4">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label">Aktif</label>
+        </div>
+        <div class="col-12">
+            <label asp-for="CoverImageUrl" class="form-label">Kapak Görsel URL</label>
+            <input asp-for="CoverImageUrl" class="form-control" />
+        </div>
+        <div class="col-12">
+            <label asp-for="Description" class="form-label">Açıklama</label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="col-12"><hr /></div>
+        <div class="col-12"><h2 class="h6">Seans Bilgileri</h2></div>
+        <div class="col-md-3">
+            <label asp-for="ScheduleStart" class="form-label">Başlangıç</label>
+            <input asp-for="ScheduleStart" type="datetime-local" class="form-control" value="@Model.ScheduleStart.ToString("yyyy-MM-ddTHH:mm")" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="ScheduleEnd" class="form-label">Bitiş</label>
+            <input asp-for="ScheduleEnd" type="datetime-local" class="form-control" value="@Model.ScheduleEnd.ToString("yyyy-MM-ddTHH:mm")" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="ScheduleCapacity" class="form-label">Kontenjan</label>
+            <input asp-for="ScheduleCapacity" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="ScheduleFee" class="form-label">Seans Ücreti</label>
+            <input asp-for="ScheduleFee" class="form-control" />
+        </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-dark">Kaydet</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Listeye Dön</a>
+    </div>
+</form>

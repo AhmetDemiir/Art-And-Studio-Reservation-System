@@ -1,0 +1,141 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.CompareViewModel
+@{
+    ViewData["Title"] = "Karşılaştırma";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Karşılaştırma Merkezi</h1>
+    <div class="text-muted">Eser ve etkinlikleri yan yana degerlendirin</div>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Eser Karşılaştırma</h2>
+                @if (!Model.Artworks.Any())
+                {
+                    <div class="alert alert-light border mb-0">Karşılaştırma listesinde eser yok.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ozellik</th>
+                                    @foreach (var artwork in Model.Artworks)
+                                    {
+                                        <th>
+                                            @artwork.Title
+                                            <form asp-action="RemoveArtwork" method="post" class="mt-2">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="artworkId" value="@artwork.ArtworkId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cikar</button>
+                                            </form>
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-semibold">Sanatci</td>
+                                    @foreach (var artwork in Model.Artworks)
+                                    {
+                                        <td>@artwork.Artist.FullName</td>
+                                    }
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Kategori</td>
+                                    @foreach (var artwork in Model.Artworks)
+                                    {
+                                        <td>@artwork.ArtworkCategory.Name</td>
+                                    }
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Fiyat</td>
+                                    @foreach (var artwork in Model.Artworks)
+                                    {
+                                        <td>@artwork.Price.ToString("C0")</td>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Etkinlik Karşılaştırma</h2>
+                @if (!Model.Workshops.Any())
+                {
+                    <div class="alert alert-light border mb-0">Karşılaştırma listesinde etkinlik yok.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ozellik</th>
+                                    @foreach (var workshop in Model.Workshops)
+                                    {
+                                        <th>
+                                            @workshop.Title
+                                            <form asp-action="RemoveWorkshop" method="post" class="mt-2">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="workshopEventId" value="@workshop.WorkshopEventId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cikar</button>
+                                            </form>
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-semibold">Tarih (Sonraki)</td>
+                                    @foreach (var workshop in Model.Workshops)
+                                    {
+                                        var nextDate = workshop.Schedules
+                                            .Where(s => !s.IsCancelled && s.StartDateTime >= DateTime.UtcNow)
+                                            .OrderBy(s => s.StartDateTime)
+                                            .FirstOrDefault();
+                                        <td>@(nextDate?.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</td>
+                                    }
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Ücret</td>
+                                    @foreach (var workshop in Model.Workshops)
+                                    {
+                                        var nextDate = workshop.Schedules
+                                            .Where(s => !s.IsCancelled && s.StartDateTime >= DateTime.UtcNow)
+                                            .OrderBy(s => s.StartDateTime)
+                                            .FirstOrDefault();
+                                        <td>@(nextDate?.Fee.ToString("C0") ?? workshop.BasePrice.ToString("C0"))</td>
+                                    }
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Kontenjan</td>
+                                    @foreach (var workshop in Model.Workshops)
+                                    {
+                                        var totalCap = workshop.Schedules.Where(s => !s.IsCancelled).Sum(s => s.Capacity);
+                                        <td>@totalCap</td>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

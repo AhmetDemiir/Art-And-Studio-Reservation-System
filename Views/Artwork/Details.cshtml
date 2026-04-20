@@ -1,0 +1,223 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.Artwork
+@{
+    ViewData["Title"] = "Eser Detayi";
+    var primaryImage = Model.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+        ?? Model.Images.FirstOrDefault()?.ImageUrl
+        ?? "https://via.placeholder.com/1000x600?text=Artwork";
+    var reviews = ViewBag.Reviews as List<Online_Art_Gallery_and_Studio_Reservation_System.Models.Review> ?? new();
+    var selectedSort = ViewBag.ReviewSort as string ?? "newest";
+    var averageRating = (double)(ViewBag.ReviewAverage ?? 0d);
+    var reviewCount = (int)(ViewBag.ReviewCount ?? 0);
+    var helpfulVotes = ViewBag.UserHelpfulVotes as HashSet<int> ?? new HashSet<int>();
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <img src="@primaryImage" class="img-fluid rounded shadow-sm w-100" style="max-height: 520px; object-fit: cover;" alt="@Model.Title" />
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                <h1 class="h3">@Model.Title</h1>
+                <p class="text-muted mb-1">@Model.Artist.FullName</p>
+                <p class="mb-3"><span class="badge bg-secondary">@Model.ArtworkCategory.Name</span></p>
+                <p>@Model.Description</p>
+                <hr />
+                <p class="mb-1"><strong>Fiyat:</strong> @Model.Price.ToString("C0")</p>
+                <p class="mb-1"><strong>Stok:</strong> @Model.StockQuantity</p>
+                <p class="mb-3"><strong>Eklenme:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</p>
+
+                @if (Model.IsForSale && Model.StockQuantity > 0)
+                {
+                    <a asp-controller="Order" asp-action="Checkout" asp-route-artworkId="@Model.ArtworkId" class="btn btn-dark w-100 mb-2">Simdi Satin Al</a>
+                }
+                else
+                {
+                    <button class="btn btn-secondary w-100 mb-2" disabled>Stokta Yok</button>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Compare" asp-action="AddArtwork" method="post" class="mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="artworkId" value="@Model.ArtworkId" />
+                        <button type="submit" class="btn btn-outline-secondary w-100">Karşılaştırmaya Ekle</button>
+                    </form>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-action="ToggleFavorite" method="post" class="d-grid gap-2 mb-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="artworkId" value="@Model.ArtworkId" />
+                        @if (ViewBag.IsFavorite == true)
+                        {
+                            <button type="submit" class="btn btn-outline-danger">
+                                Favorilerden Cikar
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-danger">
+                                Favorilere Ekle
+                            </button>
+                        }
+                    </form>
+                    <a asp-action="Favorites" class="btn btn-outline-secondary w-100 mb-2">Favorilerimi Gör</a>
+                }
+                else
+                {
+                    <div class="alert alert-warning py-2">
+                        Favorilere eklemek için <a asp-area="Identity" asp-page="/Account/Login">giriş yapın</a>.
+                    </div>
+                }
+
+                <a asp-action="Index" class="btn btn-outline-dark w-100">Listeye Don</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Images.Count > 1)
+{
+    <section class="mt-4">
+        <h2 class="h5 mb-3">Diğer Görseller</h2>
+        <div class="row g-3">
+            @foreach (var image in Model.Images.Where(i => !i.IsPrimary).OrderBy(i => i.DisplayOrder))
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <img src="@image.ImageUrl" class="img-fluid rounded border" alt="@(image.AltText ?? Model.Title)" style="height: 160px; width: 100%; object-fit: cover;" />
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<section class="mt-5">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="h4 mb-1">Yorumlar</h2>
+                <p class="mb-0 text-muted">Ortalama Puan: <strong>@averageRating.ToString("0.0")/5</strong> - Toplam @reviewCount yorum</p>
+            </div>
+            <div class="btn-group">
+                <a asp-action="Details" asp-route-id="@Model.ArtworkId" asp-route-sort="newest" class="btn @(selectedSort == "newest" ? "btn-dark" : "btn-outline-dark") btn-sm">En Yeni</a>
+                <a asp-action="Details" asp-route-id="@Model.ArtworkId" asp-route-sort="highest" class="btn @(selectedSort == "highest" ? "btn-dark" : "btn-outline-dark") btn-sm">En Yüksek Puanlı</a>
+                <a asp-action="Details" asp-route-id="@Model.ArtworkId" asp-route-sort="helpful" class="btn @(selectedSort == "helpful" ? "btn-dark" : "btn-outline-dark") btn-sm">En Faydalı</a>
+            </div>
+        </div>
+    </div>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="h5 mb-3">Yorum Yap</h3>
+                <form asp-controller="Review" asp-action="AddReview" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="artworkId" value="@Model.ArtworkId" />
+                    <input type="hidden" name="sort" value="@selectedSort" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Puan</label>
+                        <div class="d-flex gap-3">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating-art-@i" value="@i" @(i == 5 ? "checked" : null) />
+                                    <label class="form-check-label" for="rating-art-@i">@i</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="art-comment">Yorum</label>
+                        <textarea class="form-control" id="art-comment" name="comment" rows="3" maxlength="2500" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-dark">Yorumu Gonder</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mb-4">
+            Yorum yapabilmek için <a asp-area="Identity" asp-page="/Account/Login">giriş yapmalısın</a>.
+        </div>
+    }
+
+    @if (!reviews.Any())
+    {
+        <div class="alert alert-light border">Bu eser için henüz yorum yapılmamış.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-3">
+            @foreach (var review in reviews)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>@review.User.FullName</strong>
+                                @if (review.IsVerifiedPurchaseOrParticipation)
+                                {
+                                    <span class="badge bg-success ms-2">Doğrulanmış</span>
+                                }
+                            </div>
+                            <small class="text-muted">@review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                        <p class="mb-1"><strong>Puan:</strong> @review.Rating/5</p>
+                        <p class="mb-3">@review.Comment</p>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <form asp-controller="Review" asp-action="VoteHelpful" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reviewId" value="@review.ReviewId" />
+                                <input type="hidden" name="targetType" value="artwork" />
+                                <input type="hidden" name="targetId" value="@Model.ArtworkId" />
+                                <input type="hidden" name="sort" value="@selectedSort" />
+                                <button type="submit" class="btn btn-sm @(helpfulVotes.Contains(review.ReviewId) ? "btn-secondary" : "btn-outline-secondary")" @(helpfulVotes.Contains(review.ReviewId) ? "disabled" : null)>
+                                    Faydalı Buldum (@review.HelpfulCount)
+                                </button>
+                            </form>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <form asp-controller="Review" asp-action="AdminReply" method="post" class="d-flex gap-2 align-items-start flex-wrap">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="reviewId" value="@review.ReviewId" />
+                                    <input type="hidden" name="targetType" value="artwork" />
+                                    <input type="hidden" name="targetId" value="@Model.ArtworkId" />
+                                    <input type="hidden" name="sort" value="@selectedSort" />
+                                    <input type="text" name="responseText" class="form-control form-control-sm" style="min-width: 240px;" placeholder="Yönetici yanıtı yaz..." required />
+                                    <button type="submit" class="btn btn-sm btn-primary">Yanıtla</button>
+                                </form>
+                            }
+                        </div>
+
+                        @if (review.Responses.Any())
+                        {
+                            <div class="mt-3 d-grid gap-2">
+                                @foreach (var response in review.Responses.OrderByDescending(r => r.CreatedAt))
+                                {
+                                    <div class="p-3 rounded" style="background-color: #eef5ff;">
+                                        <p class="mb-1"><strong>Yönetici Yanıtı - @response.AdminUser.FullName</strong></p>
+                                        <p class="mb-1">@response.ResponseText</p>
+                                        <small class="text-muted">@response.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

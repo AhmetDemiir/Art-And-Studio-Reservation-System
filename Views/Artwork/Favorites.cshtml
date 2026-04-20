@@ -1,0 +1,58 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.ArtworkFavorite>
+@{
+    ViewData["Title"] = "Favorilerim";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Favori Eserlerim</h1>
+    <a asp-action="Index" class="btn btn-outline-dark">Tüm Eserler</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body py-5 text-center">
+            <h2 class="h5">Henüz favori eserin yok.</h2>
+            <p class="text-muted mb-3">Begendigin eserleri favorilere ekleyerek burada gorebilirsin.</p>
+            <a asp-action="Index" class="btn btn-dark">Eserleri Keşfet</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var favorite in Model)
+        {
+            var artwork = favorite.Artwork;
+            var imageUrl = artwork.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                ?? artwork.Images.FirstOrDefault()?.ImageUrl
+                ?? "https://via.placeholder.com/800x500?text=Artwork";
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="@imageUrl" class="card-img-top" alt="@artwork.Title" style="height: 220px; object-fit: cover;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@artwork.Title</h5>
+                        <p class="text-muted mb-1">@artwork.Artist.FullName</p>
+                        <p class="mb-2"><small class="text-muted">@artwork.ArtworkCategory.Name</small></p>
+                        <p class="fw-semibold mb-3">@artwork.Price.ToString("C0")</p>
+
+                        <div class="d-grid gap-2 mt-auto">
+                            <a asp-action="Details" asp-route-id="@artwork.ArtworkId" class="btn btn-dark">Detayları Gör</a>
+                            <form asp-action="ToggleFavorite" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="artworkId" value="@artwork.ArtworkId" />
+                                <button type="submit" class="btn btn-outline-danger w-100">Favoriden Cikar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

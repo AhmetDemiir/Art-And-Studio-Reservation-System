@@ -1,0 +1,73 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.EditProfileViewModel
+@{
+    ViewData["Title"] = "Profilimi Güncelle";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Profilimi Güncelle</h1>
+                <p class="text-muted">Ad, soyad ve telefon bilgilerinizi buradan güncelleyebilirsiniz.</p>
+
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
+                <form asp-action="EditProfile" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">E-posta</label>
+                        <input asp-for="Email" class="form-control" disabled />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label">Ad</label>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label">Soyad</label>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label asp-for="PhoneNumber" class="form-label">Telefon</label>
+                        <input asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h2 class="h6 mb-3">Şifre Değiştir</h2>
+                    <p class="text-muted small">Şifre değiştirmek istemiyorsanız bu alanları boş bırakabilirsiniz.</p>
+                    <div class="mb-3">
+                        <label asp-for="CurrentPassword" class="form-label">Mevcut Şifre</label>
+                        <input asp-for="CurrentPassword" class="form-control" type="password" autocomplete="current-password" />
+                        <span asp-validation-for="CurrentPassword" class="text-danger"></span>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="NewPassword" class="form-label">Yeni Şifre</label>
+                            <input asp-for="NewPassword" class="form-control" type="password" autocomplete="new-password" />
+                            <span asp-validation-for="NewPassword" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmNewPassword" class="form-label">Yeni Şifre Tekrar</label>
+                            <input asp-for="ConfirmNewPassword" class="form-control" type="password" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-dark">Kaydet</button>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Ana Sayfa</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

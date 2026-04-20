@@ -1,0 +1,118 @@
+﻿@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="p-4 p-md-5 mb-4 rounded-3 bg-light border">
+    <div class="col-lg-8 px-0">
+        <h1 class="display-6 fw-bold">Online Sanat Galerisi ve Atölye Rezervasyon Sistemi</h1>
+        <p class="lead mb-0">
+            Son eklenen eserleri keşfet, yaklaşan atölyelere göz at ve sanat deneyimini tek bir platformdan yönet.
+        </p>
+    </div>
+</div>
+
+@if (Model.ActiveCoupons.Any())
+{
+    <section class="mb-4">
+        <div class="card border-success shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 text-success mb-3"><i class="bi bi-megaphone-fill me-2"></i>Fırsat ve Kampanyalar</h2>
+                <div class="row g-2">
+                    @foreach (var coupon in Model.ActiveCoupons)
+                    {
+                        <div class="col-md-4">
+                            <div class="alert alert-success mb-0 py-2">
+                                <div class="fw-semibold">Kod: @coupon.Code</div>
+                                <div class="small">
+                                    İndirim:
+                                    @(coupon.IsPercentage ? $"{coupon.DiscountValue:0.##}%" : coupon.DiscountValue.ToString("C0"))
+                                </div>
+                                <div class="small text-muted">Son Tarih: @coupon.ValidTo.ToLocalTime().ToString("dd MMM yyyy")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Son Eklenen Eserler</h2>
+        <a asp-controller="Artwork" asp-action="Index" class="btn btn-outline-dark btn-sm">Tüm Eserler</a>
+    </div>
+    <div class="row g-4">
+        @if (!Model.LatestArtworks.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info mb-0">Henüz eser eklenmedi.</div>
+            </div>
+        }
+        else
+        {
+            @foreach (var artwork in Model.LatestArtworks)
+            {
+                var imageUrl = artwork.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                    ?? artwork.Images.FirstOrDefault()?.ImageUrl
+                    ?? "https://via.placeholder.com/800x500?text=Artwork";
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <img src="@imageUrl" class="card-img-top" alt="@artwork.Title" style="height: 220px; object-fit: cover;" />
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@artwork.Title</h5>
+                            <p class="card-text text-muted mb-1">@artwork.Artist.FullName</p>
+                            <p class="card-text"><small class="text-muted">@artwork.ArtworkCategory.Name</small></p>
+                            <p class="fw-semibold mt-auto mb-3">@artwork.Price.ToString("C0")</p>
+                            <a asp-controller="Artwork" asp-action="Details" asp-route-id="@artwork.ArtworkId" class="btn btn-dark">Detayları Gör</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
+
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Yaklaşan Atölyeler</h2>
+        <a asp-controller="Workshop" asp-action="Index" class="btn btn-outline-dark btn-sm">Tüm Atölyeler</a>
+    </div>
+    <div class="row g-4">
+        @if (!Model.UpcomingWorkshops.Any())
+        {
+            <div class="col-12">
+                <div class="alert alert-info mb-0">Yaklaşan atölye bulunmuyor.</div>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model.UpcomingWorkshops)
+            {
+                var nextSchedule = item.NextSchedule;
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm">
+                        <img src="@(item.Workshop.CoverImageUrl ?? "https://via.placeholder.com/900x500?text=Workshop")"
+                             class="card-img-top" alt="@item.Workshop.Title" style="height: 220px; object-fit: cover;" />
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@item.Workshop.Title</h5>
+                            <p class="card-text text-muted mb-1">@item.Workshop.WorkshopCategory.Name</p>
+                            <p class="card-text"><small class="text-muted">@item.Workshop.Location</small></p>
+                            @if (nextSchedule is not null)
+                            {
+                                <p class="mb-1"><strong>Tarih:</strong> @nextSchedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+                                <p class="mb-3"><strong>Ücret:</strong> @nextSchedule.Fee.ToString("C0")</p>
+                            }
+                            else
+                            {
+                                <p class="mb-3 text-muted">Bu etkinlik için yaklaşan program bulunmuyor.</p>
+                            }
+                            <a asp-controller="Workshop" asp-action="Details" asp-route-id="@item.Workshop.WorkshopEventId" class="btn btn-dark mt-auto">Atölye Detayı</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>

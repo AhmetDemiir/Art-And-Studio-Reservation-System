@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\buildMultiTargeting\Online_Art_Gallery_and_Studio_Reservation_System.props" />
+</Project>

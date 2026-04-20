@@ -1,0 +1,128 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.Reservation>
+@{
+    ViewData["Title"] = "Rezervasyonlarım";
+    var now = DateTime.UtcNow;
+    var activeReservations = Model
+        .Where(r => r.Status != Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Cancelled
+                    && r.WorkshopSchedule.StartDateTime >= now)
+        .OrderBy(r => r.WorkshopSchedule.StartDateTime)
+        .ToList();
+    var historyReservations = Model
+        .Where(r => r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Cancelled
+                    || r.WorkshopSchedule.StartDateTime < now)
+        .OrderByDescending(r => r.WorkshopSchedule.StartDateTime)
+        .ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Rezervasyonlarım</h1>
+    <a asp-controller="Workshop" asp-action="Index" class="btn btn-outline-dark">Atölyelere Dön</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<section class="mb-5">
+    <h2 class="h5 mb-3">Aktif Rezervasyonlar</h2>
+    @if (!activeReservations.Any())
+    {
+        <div class="alert alert-info mb-0">Aktif rezervasyonun bulunmuyor.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Etkinlik</th>
+                        <th>Tarih</th>
+                        <th>Seans / Kişi</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var reservation in activeReservations)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@reservation.WorkshopSchedule.WorkshopEvent.Title</td>
+                            <td>@reservation.WorkshopSchedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td>
+                                <form asp-action="UpdateReservationParticipants" method="post" class="d-grid gap-2">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
+                                    <select name="workshopScheduleId" class="form-select form-select-sm">
+                                        @foreach (var schedule in reservation.WorkshopSchedule.WorkshopEvent.Schedules
+                                            .Where(s => !s.IsCancelled && s.StartDateTime >= DateTime.UtcNow)
+                                            .OrderBy(s => s.StartDateTime))
+                                        {
+                                            @if (schedule.WorkshopScheduleId == reservation.WorkshopScheduleId)
+                                            {
+                                                <option value="@schedule.WorkshopScheduleId" selected>@schedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@schedule.WorkshopScheduleId">@schedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <input type="number" name="participantCount" class="form-control form-control-sm" value="@reservation.ParticipantCount" min="1" style="max-width: 90px;" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Güncelle</button>
+                                    </div>
+                                </form>
+                            </td>
+                            <td>@reservation.TotalPrice.ToString("C0")</td>
+                            <td>
+                                <span class="badge bg-success">@reservation.Status</span>
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="CancelReservation" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">İptal Et</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section>
+    <h2 class="h5 mb-3">Geçmiş Rezervasyonlar</h2>
+    @if (!historyReservations.Any())
+    {
+        <div class="alert alert-light border mb-0">Geçmiş rezervasyon bulunmuyor.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var reservation in historyReservations)
+            {
+                var statusClass = reservation.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Cancelled
+                    ? "bg-danger"
+                    : "bg-secondary";
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h3 class="h6">@reservation.WorkshopSchedule.WorkshopEvent.Title</h3>
+                            <p class="mb-1 text-muted">@reservation.WorkshopSchedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+                            <p class="mb-2">Katılımcı: <strong>@reservation.ParticipantCount</strong> - Tutar: <strong>@reservation.TotalPrice.ToString("C0")</strong></p>
+                            <span class="badge @statusClass">@reservation.Status</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

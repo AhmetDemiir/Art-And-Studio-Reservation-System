@@ -1,0 +1,33 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.SupportTicketCreateViewModel
+@{
+    ViewData["Title"] = "Destek Talebi Oluştur";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Destek Talebi Oluştur</h1>
+                <p class="text-muted">Sorununuzu yazin, ekibimiz en kisa surede donus yapsin.</p>
+
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label"></label>
+                        <input asp-for="Subject" class="form-control" />
+                        <span asp-validation-for="Subject" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Message" class="form-label">Mesajiniz</label>
+                        <textarea asp-for="Message" rows="6" class="form-control"></textarea>
+                        <span asp-validation-for="Message" class="text-danger"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-dark">Talebi Gonder</button>
+                        <a asp-action="MyTickets" class="btn btn-outline-secondary">Taleplerime Git</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

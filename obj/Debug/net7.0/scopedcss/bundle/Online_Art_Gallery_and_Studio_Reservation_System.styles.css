@@ -1,0 +1,49 @@
+/* _content/Online_Art_Gallery_and_Studio_Reservation_System/Views/Shared/_Layout.cshtml.rz.scp.css */
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand[b-ga2215o0yu] {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+a[b-ga2215o0yu] {
+  color: #0077cc;
+}
+
+.btn-primary[b-ga2215o0yu] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active[b-ga2215o0yu], .nav-pills .show > .nav-link[b-ga2215o0yu] {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.border-top[b-ga2215o0yu] {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom[b-ga2215o0yu] {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow[b-ga2215o0yu] {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy[b-ga2215o0yu] {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+.footer[b-ga2215o0yu] {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px;
+}

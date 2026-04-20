@@ -1,0 +1,52 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.WorkshopEvent>
+@{
+    ViewData["Title"] = "Atölyeler";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Atölyeler</h1>
+    <span class="text-muted">@Model.Count() etkinlik listeleniyor</span>
+</div>
+
+<div class="row g-4">
+    @foreach (var workshop in Model)
+    {
+        var nextSchedule = workshop.Schedules
+            .Where(s => !s.IsCancelled && s.StartDateTime >= DateTime.UtcNow)
+            .OrderBy(s => s.StartDateTime)
+            .FirstOrDefault();
+
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <img src="@(workshop.CoverImageUrl ?? "https://via.placeholder.com/900x500?text=Workshop")"
+                     class="card-img-top" alt="@workshop.Title" style="height: 220px; object-fit: cover;" />
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">@workshop.Title</h5>
+                    <p class="text-muted mb-1">@workshop.WorkshopCategory.Name</p>
+                    <p class="mb-2"><small class="text-muted">@workshop.Location</small></p>
+                    <p class="card-text text-truncate">@workshop.Description</p>
+                    @if (nextSchedule is not null)
+                    {
+                        <p class="mb-1"><strong>Sonraki Tarih:</strong> @nextSchedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+                        <p class="mb-3"><strong>Ücret:</strong> @nextSchedule.Fee.ToString("C0")</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-3">Henüz program açıklanmadı.</p>
+                    }
+                    <div class="d-grid gap-2 mt-auto">
+                        <a asp-action="Details" asp-route-id="@workshop.WorkshopEventId" class="btn btn-dark">Detayları Gör</a>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Compare" asp-action="AddWorkshop" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="workshopEventId" value="@workshop.WorkshopEventId" />
+                                <button type="submit" class="btn btn-outline-secondary w-100">Karşılaştırmaya Ekle</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

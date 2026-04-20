@@ -1,0 +1,47 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.Artwork>
+@{
+    ViewData["Title"] = "Eserleri Yönet";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Eserleri Yönet</h1>
+    <a asp-action="Create" class="btn btn-dark">Yeni Eser Ekle</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Eser</th>
+                <th>Sanatçı</th>
+                <th>Kategori</th>
+                <th class="text-end">Fiyat</th>
+                <th class="text-end">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.Artist.FullName</td>
+                    <td>@item.ArtworkCategory.Name</td>
+                    <td class="text-end">@item.Price.ToString("C0")</td>
+                    <td class="text-end">
+                        <a asp-action="Edit" asp-route-id="@item.ArtworkId" class="btn btn-sm btn-outline-primary">Düzenle</a>
+                        <form asp-action="Delete" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.ArtworkId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

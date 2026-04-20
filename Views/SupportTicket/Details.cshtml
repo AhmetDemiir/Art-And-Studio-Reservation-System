@@ -1,0 +1,83 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.SupportTicketDetailsViewModel
+@{
+    ViewData["Title"] = "Destek Konuşması";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">@Model.Ticket.Subject</h1>
+        <p class="text-muted mb-0">Durum: <span class="badge bg-secondary">@Model.Ticket.Status</span></p>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="AdminTickets" asp-controller="SupportTicket" class="btn btn-outline-dark">Tüm Talepler</a>
+    }
+    else
+    {
+        <a asp-action="MyTickets" asp-controller="SupportTicket" class="btn btn-outline-dark">Taleplerim</a>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body" style="max-height: 450px; overflow-y: auto;">
+        @if (!Model.Messages.Any())
+        {
+            <p class="text-muted mb-0">Henüz mesaj bulunmuyor.</p>
+        }
+        else
+        {
+            <div class="d-grid gap-3">
+                @foreach (var msg in Model.Messages)
+                {
+                    var cardClass = msg.IsFromAdmin ? "bg-light border-primary" : "bg-white border-secondary";
+                    <div class="border rounded p-3 @cardClass">
+                        <div class="d-flex justify-content-between">
+                            <strong>@msg.Sender.FullName @(msg.IsFromAdmin ? "(Admin)" : "(Kullanıcı)")</strong>
+                            <small class="text-muted">@msg.SentAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                        <p class="mb-0 mt-2">@msg.Message</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form asp-controller="SupportTicket" asp-action="AddMessage" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="SupportTicketId" value="@Model.Ticket.SupportTicketId" />
+            <div class="mb-3">
+                <label class="form-label">Yeni Mesaj</label>
+                <textarea name="Message" rows="4" class="form-control" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-dark">Mesaj Gönder</button>
+        </form>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="h6 mb-3">Talep Durumunu Güncelle</h2>
+            <form asp-controller="SupportTicket" asp-action="UpdateStatus" method="post" class="d-flex flex-wrap gap-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ticketId" value="@Model.Ticket.SupportTicketId" />
+                <button type="submit" name="status" value="Resolved" class="btn btn-sm btn-outline-success">Yanıtlandı</button>
+                <button type="submit" name="status" value="InProgress" class="btn btn-sm btn-outline-primary">İşlemde</button>
+                <button type="submit" name="status" value="Closed" class="btn btn-sm btn-outline-danger">Kapalı</button>
+            </form>
+        </div>
+    </div>
+}

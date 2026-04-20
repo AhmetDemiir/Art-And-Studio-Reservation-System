@@ -1,0 +1,81 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Ödeme ve Sipariş Onayı";
+    var imageUrl = Model.ImageUrl ?? "https://via.placeholder.com/900x600?text=Artwork";
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <img src="@imageUrl" class="card-img-top" style="height: 360px; object-fit: cover;" alt="@Model.ArtworkTitle" />
+            <div class="card-body">
+                <h1 class="h4">@Model.ArtworkTitle</h1>
+                <p class="text-muted mb-1">@Model.ArtistName</p>
+                <p class="mb-2">Stok: <strong>@Model.AvailableStock</strong></p>
+                <h2 class="h5 mb-0">Tutar: @Model.UnitPrice.ToString("C0")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Odeme Bilgileri</h2>
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
+                <form asp-action="ApplyCoupon" method="post" class="p-3 rounded border bg-light mb-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="artworkId" value="@Model.ArtworkId" />
+                    <label class="form-label fw-semibold mb-2">Indirim Kuponu</label>
+                    <div class="input-group">
+                        <input type="text" name="code" value="@Model.CouponCode" class="form-control" placeholder="Kupon kodu girin" />
+                        <button type="submit" class="btn btn-outline-dark">Uygula</button>
+                    </div>
+                </form>
+
+                <form asp-action="Checkout" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="ArtworkId" type="hidden" />
+                    <input asp-for="ArtworkTitle" type="hidden" />
+                    <input asp-for="ArtistName" type="hidden" />
+                    <input asp-for="ImageUrl" type="hidden" />
+                    <input asp-for="UnitPrice" type="hidden" />
+                    <input asp-for="AvailableStock" type="hidden" />
+                    <input asp-for="CouponCode" type="hidden" />
+
+                    <div class="mb-3">
+                        <label asp-for="SelectedPaymentMethod" class="form-label fw-semibold">Odeme Yontemi</label>
+                        <select asp-for="SelectedPaymentMethod" class="form-select" asp-items="Html.GetEnumSelectList<Online_Art_Gallery_and_Studio_Reservation_System.Models.PaymentMethod>()"></select>
+                    </div>
+
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Ara Toplam</span>
+                            <strong>@Model.UnitPrice.ToString("C0")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Indirim</span>
+                            <strong>- @Model.DiscountAmount.ToString("C0")</strong>
+                        </div>
+                        <hr class="my-2" />
+                        <div class="d-flex justify-content-between">
+                            <span>Odenecek Tutar</span>
+                            <strong class="text-success">@((Model.FinalAmount == 0 ? Model.UnitPrice : Model.FinalAmount).ToString("C0"))</strong>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-dark">Siparişi Onayla</button>
+                        <a asp-controller="Artwork" asp-action="Details" asp-route-id="@Model.ArtworkId" class="btn btn-outline-secondary">Esere Geri Don</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

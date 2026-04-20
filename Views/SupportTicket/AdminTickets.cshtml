@@ -1,0 +1,44 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.SupportTicket>
+@{
+    ViewData["Title"] = "Gelen Destek Talepleri";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Gelen Destek Talepleri</h1>
+    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-dark">Yönetim Paneli</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Kullanıcı</th>
+                <th>Konu</th>
+                <th>Durum</th>
+                <th>Mesaj</th>
+                <th>Oluşturma</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(ticket.User.FullName) ? ticket.User.Email : ticket.User.FullName)</td>
+                    <td>@ticket.Subject</td>
+                    <td><span class="badge bg-secondary">@ticket.Status</span></td>
+                    <td>@ticket.Messages.Count</td>
+                    <td>@ticket.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@ticket.SupportTicketId" class="btn btn-sm btn-dark">Mesajlaşma</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

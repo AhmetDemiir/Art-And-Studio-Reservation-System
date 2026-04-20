@@ -1,0 +1,270 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.WorkshopEvent
+@{
+    ViewData["Title"] = "Atölye Detayı";
+    var orderedSchedules = Model.Schedules
+        .Where(s => !s.IsCancelled)
+        .OrderBy(s => s.StartDateTime)
+        .ToList();
+    var nextSchedule = orderedSchedules.FirstOrDefault(s => s.StartDateTime >= DateTime.UtcNow);
+    var reservedCount = nextSchedule?.Reservations
+        .Where(r => r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Pending
+                    || r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Confirmed)
+        .Sum(r => r.ParticipantCount) ?? 0;
+    var remainingCapacity = nextSchedule is null ? 0 : Math.Max(0, nextSchedule.Capacity - reservedCount);
+    var reviews = ViewBag.Reviews as List<Online_Art_Gallery_and_Studio_Reservation_System.Models.Review> ?? new();
+    var selectedSort = ViewBag.ReviewSort as string ?? "newest";
+    var averageRating = (double)(ViewBag.ReviewAverage ?? 0d);
+    var reviewCount = (int)(ViewBag.ReviewCount ?? 0);
+    var helpfulVotes = ViewBag.UserHelpfulVotes as HashSet<int> ?? new HashSet<int>();
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <img src="@(Model.CoverImageUrl ?? "https://via.placeholder.com/1100x650?text=Workshop")"
+             class="img-fluid rounded shadow-sm w-100" style="max-height: 520px; object-fit: cover;" alt="@Model.Title" />
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] is string successMessage)
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+                @if (TempData["ErrorMessage"] is string errorMessage)
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+                <h1 class="h3">@Model.Title</h1>
+                <p class="mb-2"><span class="badge bg-secondary">@Model.WorkshopCategory.Name</span></p>
+                <p class="text-muted mb-2">@Model.Location</p>
+                <p>@Model.Description</p>
+                <hr />
+                <p class="mb-1"><strong>Başlangıç Ücreti:</strong> @Model.BasePrice.ToString("C0")</p>
+
+                @if (nextSchedule is not null)
+                {
+                    <p class="mb-1"><strong>Sonraki Seans:</strong> @nextSchedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
+                    <p class="mb-3"><strong>Kalan Kontenjan:</strong> @remainingCapacity</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-3">Uygun seans bulunmuyor.</p>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true && nextSchedule is not null)
+                {
+                    <form asp-action="Book" method="post" class="p-3 border rounded bg-light">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="eventId" value="@Model.WorkshopEventId" />
+                        <div class="mb-3">
+                            <label for="workshopScheduleId" class="form-label fw-semibold">Tarih ve Saat Seçimi</label>
+                            <select id="workshopScheduleId" name="workshopScheduleId" class="form-select" required>
+                                @foreach (var schedule in orderedSchedules.Where(s => s.StartDateTime >= DateTime.UtcNow))
+                                {
+                                    var scheduleReservedCount = schedule.Reservations
+                                        .Where(r => r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Pending
+                                                    || r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Confirmed)
+                                        .Sum(r => r.ParticipantCount);
+                                    var scheduleRemaining = Math.Max(0, schedule.Capacity - scheduleReservedCount);
+                                    @if (scheduleRemaining <= 0)
+                                    {
+                                        <option value="@schedule.WorkshopScheduleId" disabled>
+                                            @schedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                            - @scheduleRemaining/@schedule.Capacity kontenjan
+                                            - @schedule.Fee.ToString("C0")
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@schedule.WorkshopScheduleId">
+                                            @schedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                            - @scheduleRemaining/@schedule.Capacity kontenjan
+                                            - @schedule.Fee.ToString("C0")
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="participantCount" class="form-label fw-semibold">Katılımcı Sayısı</label>
+                            <input id="participantCount" name="participantCount" type="number" class="form-control" min="1" max="@Math.Max(1, remainingCapacity)" value="1" required />
+                            <div class="form-text">Seçtiğiniz seans için rezervasyon oluşturulur.</div>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100" @(remainingCapacity <= 0 ? "disabled" : null)>Rezervasyon Yap</button>
+                    </form>
+                    <form asp-controller="Compare" asp-action="AddWorkshop" method="post" class="mt-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="workshopEventId" value="@Model.WorkshopEventId" />
+                        <button type="submit" class="btn btn-outline-secondary w-100">Karşılaştırmaya Ekle</button>
+                    </form>
+                }
+                else if (User.Identity?.IsAuthenticated != true)
+                {
+                    <div class="alert alert-warning mb-0">
+                        Rezervasyon yapmak için <a asp-area="Identity" asp-page="/Account/Login">giriş yapın</a>.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<section>
+    <h2 class="h5 mb-3">Program Takvimi</h2>
+    @if (!orderedSchedules.Any())
+    {
+        <div class="alert alert-info mb-0">Bu atölye için aktif takvim bulunmuyor.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Saat</th>
+                        <th>Kontenjan</th>
+                        <th>Ücret</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var schedule in orderedSchedules)
+                    {
+                        var scheduleReservedCount = schedule.Reservations
+                            .Where(r => r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Pending
+                                        || r.Status == Online_Art_Gallery_and_Studio_Reservation_System.Models.ReservationStatus.Confirmed)
+                            .Sum(r => r.ParticipantCount);
+                        var scheduleRemaining = Math.Max(0, schedule.Capacity - scheduleReservedCount);
+                        <tr>
+                            <td>@schedule.StartDateTime.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>@schedule.StartDateTime.ToLocalTime().ToString("HH:mm") - @schedule.EndDateTime.ToLocalTime().ToString("HH:mm")</td>
+                            <td>@scheduleRemaining / @schedule.Capacity</td>
+                            <td>@schedule.Fee.ToString("C0")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="mt-5">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="h4 mb-1">Etkinlik Yorumları</h2>
+                <p class="mb-0 text-muted">Ortalama Puan: <strong>@averageRating.ToString("0.0")/5</strong> - Toplam @reviewCount yorum</p>
+            </div>
+            <div class="btn-group">
+                <a asp-action="Details" asp-route-id="@Model.WorkshopEventId" asp-route-sort="newest" class="btn @(selectedSort == "newest" ? "btn-dark" : "btn-outline-dark") btn-sm">En Yeni</a>
+                <a asp-action="Details" asp-route-id="@Model.WorkshopEventId" asp-route-sort="highest" class="btn @(selectedSort == "highest" ? "btn-dark" : "btn-outline-dark") btn-sm">En Yüksek Puanlı</a>
+                <a asp-action="Details" asp-route-id="@Model.WorkshopEventId" asp-route-sort="helpful" class="btn @(selectedSort == "helpful" ? "btn-dark" : "btn-outline-dark") btn-sm">En Faydalı</a>
+            </div>
+        </div>
+    </div>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h3 class="h5 mb-3">Yorum Yap</h3>
+                <form asp-controller="Review" asp-action="AddReview" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="workshopEventId" value="@Model.WorkshopEventId" />
+                    <input type="hidden" name="sort" value="@selectedSort" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Puan</label>
+                        <div class="d-flex gap-3">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" id="rating-work-@i" value="@i" @(i == 5 ? "checked" : null) />
+                                    <label class="form-check-label" for="rating-work-@i">@i</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="work-comment">Yorum</label>
+                        <textarea class="form-control" id="work-comment" name="comment" rows="3" maxlength="2500" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-dark">Yorumu Gönder</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mb-4">
+            Yorum yapabilmek için <a asp-area="Identity" asp-page="/Account/Login">giriş yapmalısın</a>.
+        </div>
+    }
+
+    @if (!reviews.Any())
+    {
+        <div class="alert alert-light border">Bu etkinlik için henüz yorum yapılmamış.</div>
+    }
+    else
+    {
+        <div class="d-grid gap-3">
+            @foreach (var review in reviews)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>@review.User.FullName</strong>
+                                @if (review.IsVerifiedPurchaseOrParticipation)
+                                {
+                                    <span class="badge bg-success ms-2">Doğrulanmış</span>
+                                }
+                            </div>
+                            <small class="text-muted">@review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                        <p class="mb-1"><strong>Puan:</strong> @review.Rating/5</p>
+                        <p class="mb-3">@review.Comment</p>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <form asp-controller="Review" asp-action="VoteHelpful" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reviewId" value="@review.ReviewId" />
+                                <input type="hidden" name="targetType" value="workshop" />
+                                <input type="hidden" name="targetId" value="@Model.WorkshopEventId" />
+                                <input type="hidden" name="sort" value="@selectedSort" />
+                                <button type="submit" class="btn btn-sm @(helpfulVotes.Contains(review.ReviewId) ? "btn-secondary" : "btn-outline-secondary")" @(helpfulVotes.Contains(review.ReviewId) ? "disabled" : null)>
+                                    Faydalı Buldum (@review.HelpfulCount)
+                                </button>
+                            </form>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <form asp-controller="Review" asp-action="AdminReply" method="post" class="d-flex gap-2 align-items-start flex-wrap">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="reviewId" value="@review.ReviewId" />
+                                    <input type="hidden" name="targetType" value="workshop" />
+                                    <input type="hidden" name="targetId" value="@Model.WorkshopEventId" />
+                                    <input type="hidden" name="sort" value="@selectedSort" />
+                                    <input type="text" name="responseText" class="form-control form-control-sm" style="min-width: 240px;" placeholder="Yönetici yanıtı yaz..." required />
+                                    <button type="submit" class="btn btn-sm btn-primary">Yanıtla</button>
+                                </form>
+                            }
+                        </div>
+
+                        @if (review.Responses.Any())
+                        {
+                            <div class="mt-3 d-grid gap-2">
+                                @foreach (var response in review.Responses.OrderByDescending(r => r.CreatedAt))
+                                {
+                                    <div class="p-3 rounded" style="background-color: #eef5ff;">
+                                        <p class="mb-1"><strong>Yönetici Yanıtı - @response.AdminUser.FullName</strong></p>
+                                        <p class="mb-1">@response.ResponseText</p>
+                                        <small class="text-muted">@response.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

@@ -1,0 +1,48 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.WorkshopEvent>
+@{
+    ViewData["Title"] = "Etkinlikleri Yönet";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Etkinlikleri Yönet</h1>
+    <a asp-action="Create" class="btn btn-dark">Yeni Etkinlik Ekle</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Etkinlik</th>
+                <th>Kategori</th>
+                <th class="text-end">Temel Ücret</th>
+                <th>Seans</th>
+                <th class="text-end">İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                var firstSchedule = item.Schedules.OrderBy(s => s.StartDateTime).FirstOrDefault();
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.WorkshopCategory.Name</td>
+                    <td class="text-end">@item.BasePrice.ToString("C0")</td>
+                    <td>@(firstSchedule?.StartDateTime.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</td>
+                    <td class="text-end">
+                        <a asp-action="Edit" asp-route-id="@item.WorkshopEventId" class="btn btn-sm btn-outline-primary">Düzenle</a>
+                        <form asp-action="Delete" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.WorkshopEventId" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
