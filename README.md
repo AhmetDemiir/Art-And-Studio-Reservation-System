@@ -29,7 +29,7 @@ dotnet --list-sdks
 ## ⚙️ Kurulum
 1. **Repoyu klonlayın**
 ```bash
-git clone https://github.com/KULLANICI_ADIN/Art-And-Studio-Reservation-System.git
+git clone https://github.com/AhmetDemiir/Art-And-Studio-Reservation-System.git
 cd Art-And-Studio-Reservation-System
 ```
 
