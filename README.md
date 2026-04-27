@@ -1,46 +1,65 @@
 # 🎨 Art & Studio - Online Sanat Galerisi ve Atölye Rezervasyon Sistemi
 
-Modern, kullanıcı dostu ve kapsamlı bir sanat galerisi e-ticaret ve atölye rezervasyon platformu. Bu proje, üniversite "Veritabanı Yönetim Sistemleri" dersi kapsamında 16 farklı iş kuralı ve gereksinimin %100 oranında karşılandığı profesyonel bir .NET Core uygulamasıdır.
+Modern, kullanıcı dostu ve kapsamlı bir sanat galerisi e-ticaret ve atölye rezervasyon platformu.
 
-## 🚀 Kullanılan Teknolojiler (Tech Stack)
-* **Backend:** C#, ASP.NET Core MVC
-* **Veritabanı:** Microsoft SQL Server, Entity Framework Core (Code-First)
-* **Kimlik Doğrulama:** ASP.NET Core Identity (Role-based Auth)
-* **Frontend:** HTML5, CSS3, Bootstrap 5, Razor Pages
+## 🚀 Teknoloji Yığını
+- **Backend:** C#, ASP.NET Core MVC (.NET 10)
+- **Veritabanı:** Microsoft SQL Server, Entity Framework Core (Code-First)
+- **Kimlik Doğrulama:** ASP.NET Core Identity (Role-based Auth)
+- **Frontend:** HTML5, CSS3, Bootstrap 5, Razor
 
-## ✨ Temel Özellikler ve Modüller
+## ✅ Gereksinimler
+- **.NET SDK:** `10.0.x`
+- **SQL Server:** LocalDB veya SQL Server instance
+- **EF Core CLI (opsiyonel):** `dotnet tool install --global dotnet-ef`
 
-Sistem, karmaşık veritabanı ilişkileri (One-to-Many, Many-to-Many) kullanılarak aşağıdaki modülleri barındırmaktadır:
+SDK kontrolü:
+```bash
+dotnet --version
+dotnet --list-sdks
+```
 
-* **Eser ve Atölye Yönetimi:** Sanat eserlerinin ve atölye/etkinlik seanslarının detaylı gösterimi, stok ve kontenjan takibi.
-* **Akıllı Rezervasyon Sistemi:** Kullanıcıların kontenjan durumuna göre seans seçebildiği, güncelleyebildiği ve iptal edebildiği (stok iadeli) rezervasyon modülü.
-* **E-Ticaret ve Sepet:** Eser satın alma, kupon/indirim kodu uygulama ve sipariş geçmişi takibi.
-* **Doğrulanmış Sosyal Etkileşim:** Sadece eseri satın alanların veya atölyeye katılanların yorum yapabildiği, "Faydalı Buldum" oylaması ve yönetici yanıtı içeren gelişmiş inceleme (Review) sistemi.
-* **Kullanıcı Karşılaştırma Aracı:** Eserleri (fiyat/sanatçı/kategori) ve Etkinlikleri (tarih/kontenjan/ücret) yan yana kıyaslama modülü.
-* **Yönetim ve Raporlama (Admin Dashboard):** Yöneticiler için eser ve etkinlik ekleme/silme (CRUD), satış istatistikleri, doluluk oranları ve canlı destek bilet (Ticket) yönetim paneli.
+## ✨ Temel Modüller
+- **Eser ve Atölye Yönetimi:** Eser/etkinlik listeleme, stok ve kontenjan takibi.
+- **Rezervasyon:** Seans seçme, güncelleme ve iptal.
+- **E-Ticaret:** Sepet, kupon/indirim, sipariş akışı.
+- **Yorum Sistemi:** Doğrulanmış kullanıcı yorumu ve etkileşim.
+- **Admin Panel:** İçerik yönetimi, raporlama ve operasyon yönetimi.
 
-## ⚙️ Kurulum ve Çalıştırma
+## ⚙️ Kurulum
+1. **Repoyu klonlayın**
+```bash
+git clone https://github.com/KULLANICI_ADIN/Art-And-Studio-Reservation-System.git
+cd Art-And-Studio-Reservation-System
+```
 
-Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
+2. **Bağlantı dizesini ayarlayın**
+- `appsettings.json` içindeki `DefaultConnection` değerini kendi SQL Server ortamınıza göre güncelleyin.
 
-1. **Repoyu Klonlayın:**
-   git clone https://github.com/KULLANICI_ADIN/Art-And-Studio-Reservation-System.git
+3. **Veritabanını güncelleyin**
+```bash
+dotnet ef database update
+```
 
-2. **Bağlantı Dizesini (Connection String) Ayarlayın:**
-   `appsettings.json` dosyası içerisindeki `DefaultConnection` kısmını kendi yerel SQL Server örneğinize (örn: `(localdb)\mssqllocaldb`) göre güncelleyin.
+4. **Projeyi başlatın**
+```bash
+dotnet run
+```
 
-3. **Veritabanını Güncelleyin:**
-   Paket Yöneticisi Konsolu (PMC) veya terminal üzerinden veritabanını oluşturun:
-   dotnet ef database update
+## 🌐 Varsayılan Geliştirme Portları
+- HTTP: `http://localhost:5305`
+- HTTPS: `https://localhost:7205`
 
-   *(Not: Proje ilk kez ayağa kalktığında `DbInitializer` sınıfı otomatik olarak çalışarak örnek sanatçıları, eserleri, atölyeleri ve varsayılan `Admin` rolünü veritabanına ekleyecektir.)*
+## 🔧 Sık Karşılaşılan Sorunlar
+- **Port kullanımda hatası (`address already in use`)**
+  - Aynı portu kullanan başka bir süreç vardır. Eski `dotnet run` sürecini kapatıp tekrar deneyin.
+- **Build sırasında `MSB3021/MSB3027` dosya kilidi**
+  - Uygulama hâlâ çalışıyordur ve `bin/Debug/...exe` dosyasını kilitliyordur.
+  - Çözüm: çalışan uygulamayı kapatın (`Ctrl+C`) ve tekrar `dotnet build` çalıştırın.
 
-4. **Projeyi Çalıştırın:**
-   Visual Studio üzerinden `F5`'e basarak veya terminalden `dotnet run` komutuyla uygulamayı başlatın.
-
-**🔑 Varsayılan Yönetici (Admin) Hesabı:**
-* **E-posta:** admin@artgallery.local
-* **Şifre:** Admin123!
+## 🔑 Varsayılan Admin Hesabı
+- **E-posta:** `admin@artgallery.local`
+- **Şifre:** `Admin123!`
 
 ## 👥 Geliştirici Ekibi
 Bu proje, 4 kişilik bir ekibin ortak çalışmasıyla geliştirilmiştir.
