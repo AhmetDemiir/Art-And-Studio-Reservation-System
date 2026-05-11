@@ -9,6 +9,9 @@
     var averageRating = (double)(ViewBag.ReviewAverage ?? 0d);
     var reviewCount = (int)(ViewBag.ReviewCount ?? 0);
     var helpfulVotes = ViewBag.UserHelpfulVotes as HashSet<int> ?? new HashSet<int>();
+    var nowUtc = DateTime.UtcNow;
+    var activeCampaign = Model.Campaign is not null && Model.Campaign.IsActive
+        && Model.Campaign.StartDate <= nowUtc && Model.Campaign.EndDate >= nowUtc;
 }
 
 <div class="row g-4">
@@ -28,11 +31,22 @@
                 }
                 <h1 class="h3">@Model.Title</h1>
                 <p class="text-muted mb-1">@Model.Artist.FullName</p>
-                <p class="mb-3"><span class="badge bg-secondary">@Model.ArtworkCategory.Name</span></p>
+                <p class="mb-2">
+                    <span class="badge bg-secondary">@Model.ArtworkCategory.Name</span>
+                    @if (activeCampaign)
+                    {
+                        <span class="badge bg-danger">Kampanyalı</span>
+                    }
+                </p>
+                @if (activeCampaign)
+                {
+                    <p class="small text-muted mb-2">@Model.Campaign!.Title — @(Model.Campaign.IsPercentage ? $"%{Model.Campaign.DiscountValue:0.##} indirim" : Model.Campaign.DiscountValue.ToString("C0"))</p>
+                }
                 <p>@Model.Description</p>
                 <hr />
                 <p class="mb-1"><strong>Fiyat:</strong> @Model.Price.ToString("C0")</p>
                 <p class="mb-1"><strong>Stok:</strong> @Model.StockQuantity</p>
+                <p class="mb-1"><strong>Görüntülenme:</strong> @Model.ViewCount</p>
                 <p class="mb-3"><strong>Eklenme:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</p>
 
                 @if (Model.IsForSale && Model.StockQuantity > 0)

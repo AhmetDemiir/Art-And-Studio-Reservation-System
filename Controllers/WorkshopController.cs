@@ -20,6 +20,7 @@ public class WorkshopController : Controller
     {
         var workshops = await _context.WorkshopEvents
             .Include(w => w.WorkshopCategory)
+            .Include(w => w.Campaign)
             .Include(w => w.Schedules)
             .Where(w => w.IsActive)
             .OrderBy(w => w.Title)
@@ -32,6 +33,7 @@ public class WorkshopController : Controller
     {
         var workshop = await _context.WorkshopEvents
             .Include(w => w.WorkshopCategory)
+            .Include(w => w.Campaign)
             .Include(w => w.Schedules)
                 .ThenInclude(s => s.Reservations)
             .FirstOrDefaultAsync(w => w.WorkshopEventId == id);
@@ -52,10 +54,17 @@ public class WorkshopController : Controller
                 .Where(v => v.UserId == userId)
                 .Select(v => v.ReviewId)
                 .ToListAsync());
+
+            var now = DateTime.UtcNow;
+            ViewBag.CanReviewWorkshop = workshop.Schedules.Any(s =>
+                !s.IsCancelled &&
+                s.EndDateTime <= now &&
+                s.Reservations.Any(r => r.UserId == userId && r.Status != ReservationStatus.Cancelled));
         }
         else
         {
             ViewBag.UserHelpfulVotes = new HashSet<int>();
+            ViewBag.CanReviewWorkshop = false;
         }
 
         var reviewsQuery = _context.Reviews

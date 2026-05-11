@@ -48,9 +48,10 @@ public class OrderController : Controller
             FinalAmount = artwork.Price
         };
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!string.IsNullOrWhiteSpace(couponCode))
         {
-            await ApplyCouponToViewModel(vm, couponCode.Trim());
+            await ApplyCouponToViewModel(vm, couponCode.Trim(), userId);
         }
 
         return View(vm);
@@ -100,7 +101,7 @@ public class OrderController : Controller
             return RedirectToAction("Details", "Artwork", new { id = artwork.ArtworkId });
         }
 
-        var appliedCoupon = await ResolveValidCouponAsync(model.CouponCode, artwork.Price);
+        var appliedCoupon = await ResolveValidCouponAsync(model.CouponCode, artwork.Price, userId);
         var discountAmount = appliedCoupon is null ? 0 : CalculateDiscount(appliedCoupon, artwork.Price);
         var finalAmount = Math.Max(0, artwork.Price - discountAmount);
 
@@ -199,7 +200,7 @@ public class OrderController : Controller
         return View(orders);
     }
 
-    private async Task<Coupon?> ResolveValidCouponAsync(string? code, decimal orderAmount)
+    private async Task<Coupon?> ResolveValidCouponAsync(string? code, decimal orderAmount, string? userId)
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -218,6 +219,14 @@ public class OrderController : Controller
         if (coupon is null)
         {
             return null;
+        }
+
+        if (!string.IsNullOrEmpty(coupon.RestrictedUserId))
+        {
+            if (string.IsNullOrEmpty(userId) || coupon.RestrictedUserId != userId)
+            {
+                return null;
+            }
         }
 
         if (coupon.MinimumOrderAmount.HasValue && orderAmount < coupon.MinimumOrderAmount.Value)
@@ -247,16 +256,16 @@ public class OrderController : Controller
         return Math.Max(0, Math.Min(discount, orderAmount));
     }
 
-    private async Task ApplyCouponToViewModel(CheckoutViewModel vm, string code)
+    private async Task ApplyCouponToViewModel(CheckoutViewModel vm, string code, string? userId)
     {
-        var coupon = await ResolveValidCouponAsync(code, vm.UnitPrice);
+        var coupon = await ResolveValidCouponAsync(code, vm.UnitPrice, userId);
         if (coupon is null)
         {
             vm.CouponCode = code;
             vm.DiscountAmount = 0;
             vm.FinalAmount = vm.UnitPrice;
             vm.IsCouponApplied = false;
-            TempData["ErrorMessage"] = "Kupon kodu geçersiz veya süresi dolmuş.";
+            TempData["ErrorMessage"] = "Kupon kodu geçersiz, süresi dolmuş veya hesabınıza tanımlı değil.";
             return;
         }
 

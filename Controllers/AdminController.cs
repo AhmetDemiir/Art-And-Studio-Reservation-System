@@ -45,6 +45,19 @@ public class AdminController : Controller
             .Take(5)
             .ToListAsync();
 
+        var topViewed = await _context.Artworks
+            .Select(a => new ArtworkStatItemViewModel
+            {
+                ArtworkId = a.ArtworkId,
+                Title = a.Title,
+                ArtistName = a.Artist.FullName,
+                Count = a.ViewCount
+            })
+            .OrderByDescending(x => x.Count)
+            .ThenBy(x => x.Title)
+            .Take(5)
+            .ToListAsync();
+
         var workshopStats = await _context.WorkshopEvents
             .Select(w => new WorkshopStatItemViewModel
             {
@@ -88,6 +101,7 @@ public class AdminController : Controller
         {
             TopFavoritedArtworks = topFavorited,
             TopReviewedArtworks = topReviewed,
+            TopViewedArtworks = topViewed,
             WorkshopStats = workshopStats,
             RecentOrders = recentOrders
         };

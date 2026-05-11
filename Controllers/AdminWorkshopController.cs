@@ -38,6 +38,12 @@ public class AdminWorkshopController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(WorkshopManageViewModel model)
     {
+        if (model.BasePrice < 0.01m && model.ScheduleFee >= 0.01m)
+        {
+            model.BasePrice = model.ScheduleFee;
+            ModelState.Remove(nameof(WorkshopManageViewModel.BasePrice));
+        }
+
         if (!ModelState.IsValid)
         {
             await LoadSelectsAsync();
@@ -52,6 +58,7 @@ public class AdminWorkshopController : Controller
             Location = model.Location?.Trim(),
             BasePrice = model.BasePrice,
             WorkshopCategoryId = model.WorkshopCategoryId,
+            CampaignId = model.CampaignId,
             IsActive = model.IsActive
         };
         _context.WorkshopEvents.Add(workshop);
@@ -91,6 +98,7 @@ public class AdminWorkshopController : Controller
             Location = workshop.Location,
             BasePrice = workshop.BasePrice,
             WorkshopCategoryId = workshop.WorkshopCategoryId,
+            CampaignId = workshop.CampaignId,
             IsActive = workshop.IsActive,
             ScheduleStart = schedule?.StartDateTime.ToLocalTime() ?? DateTime.Now,
             ScheduleEnd = schedule?.EndDateTime.ToLocalTime() ?? DateTime.Now.AddHours(2),
@@ -106,6 +114,12 @@ public class AdminWorkshopController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(WorkshopManageViewModel model)
     {
+        if (model.BasePrice < 0.01m && model.ScheduleFee >= 0.01m)
+        {
+            model.BasePrice = model.ScheduleFee;
+            ModelState.Remove(nameof(WorkshopManageViewModel.BasePrice));
+        }
+
         if (!ModelState.IsValid || !model.WorkshopEventId.HasValue)
         {
             await LoadSelectsAsync();
@@ -126,6 +140,7 @@ public class AdminWorkshopController : Controller
         workshop.Location = model.Location?.Trim();
         workshop.BasePrice = model.BasePrice;
         workshop.WorkshopCategoryId = model.WorkshopCategoryId;
+        workshop.CampaignId = model.CampaignId;
         workshop.IsActive = model.IsActive;
 
         var schedule = workshop.Schedules.OrderBy(s => s.StartDateTime).FirstOrDefault();
@@ -156,14 +171,40 @@ public class AdminWorkshopController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var workshop = await _context.WorkshopEvents.FirstOrDefaultAsync(w => w.WorkshopEventId == id);
-        if (workshop is null)
+        var exists = await _context.WorkshopEvents.AnyAsync(w => w.WorkshopEventId == id);
+        if (!exists)
         {
             return NotFound();
         }
 
-        _context.WorkshopEvents.Remove(workshop);
-        await _context.SaveChangesAsync();
+        // Reviews reference WorkshopEvents without ON DELETE CASCADE; helpful votes use NoAction on Review.
+        var reviewIds = await _context.Reviews.AsNoTracking()
+            .Where(r => r.WorkshopEventId == id)
+            .Select(r => r.ReviewId)
+            .ToListAsync();
+
+        if (reviewIds.Count > 0)
+        {
+            await _context.ReviewHelpfulVotes
+                .Where(v => reviewIds.Contains(v.ReviewId))
+                .ExecuteDeleteAsync();
+            await _context.Reviews
+                .Where(r => r.WorkshopEventId == id)
+                .ExecuteDeleteAsync();
+        }
+
+        await _context.WorkshopComparisonItems
+            .Where(i => i.WorkshopEventId == id)
+            .ExecuteDeleteAsync();
+
+        await _context.WorkshopSchedules
+            .Where(s => s.WorkshopEventId == id)
+            .ExecuteDeleteAsync();
+
+        await _context.WorkshopEvents
+            .Where(w => w.WorkshopEventId == id)
+            .ExecuteDeleteAsync();
+
         TempData["SuccessMessage"] = "Etkinlik silindi.";
         return RedirectToAction(nameof(Index));
     }
@@ -171,5 +212,14 @@ public class AdminWorkshopController : Controller
     private async Task LoadSelectsAsync()
     {
         ViewBag.Categories = new SelectList(await _context.WorkshopCategories.OrderBy(c => c.Name).ToListAsync(), nameof(WorkshopCategory.WorkshopCategoryId), nameof(WorkshopCategory.Name));
+
+        var campaignItems = new List<SelectListItem>
+        {
+            new("(Kampanya yok)", "")
+        };
+        campaignItems.AddRange(
+            (await _context.Campaigns.OrderBy(c => c.Title).ToListAsync())
+                .Select(c => new SelectListItem(c.Title, c.CampaignId.ToString())));
+        ViewBag.Campaigns = campaignItems;
     }
 }

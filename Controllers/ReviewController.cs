@@ -81,13 +81,16 @@ public class ReviewController : Controller
                 .AnyAsync(r =>
                     r.UserId == userId &&
                     r.WorkshopSchedule.WorkshopEventId == targetWorkshopId &&
-                    r.Status != ReservationStatus.Cancelled);
+                    r.Status != ReservationStatus.Cancelled &&
+                    r.WorkshopSchedule.EndDateTime <= DateTime.UtcNow);
             targetType = ReviewTargetType.Workshop;
         }
 
         if (!verified)
         {
-            TempData["ErrorMessage"] = "Yorum eklemek icin dogrulanmis satin alma veya rezervasyon gerekli.";
+            TempData["ErrorMessage"] = isWorkshopReview
+                ? "Etkinlik yorumu icin ilgili seansa katilmis olmaniz ve seansin tamamlanmis olmasi gerekir."
+                : "Yorum eklemek icin dogrulanmis satin alma gerekli.";
             return RedirectToTarget(artworkId, workshopEventId, sort);
         }
 

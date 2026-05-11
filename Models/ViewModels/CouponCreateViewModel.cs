@@ -22,4 +22,8 @@ public class CouponCreateViewModel
 
     [Required]
     public DateTime ValidTo { get; set; } = DateTime.UtcNow.AddMonths(1);
+
+    [EmailAddress]
+    [StringLength(256)]
+    public string? RestrictedUserEmail { get; set; }
 }

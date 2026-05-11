@@ -75,6 +75,10 @@ public class Artwork
     public int ArtworkCategoryId { get; set; }
     public ArtworkCategory ArtworkCategory { get; set; } = null!;
 
+    [ForeignKey(nameof(Campaign))]
+    public int? CampaignId { get; set; }
+    public Campaign? Campaign { get; set; }
+
     public ICollection<ArtworkImage> Images { get; set; } = new HashSet<ArtworkImage>();
     public ICollection<ArtworkFavorite> Favorites { get; set; } = new HashSet<ArtworkFavorite>();
     public ICollection<ArtworkViewLog> ViewLogs { get; set; } = new HashSet<ArtworkViewLog>();
@@ -185,6 +189,10 @@ public class WorkshopEvent
     public int WorkshopCategoryId { get; set; }
     public WorkshopCategory WorkshopCategory { get; set; } = null!;
 
+    [ForeignKey(nameof(Campaign))]
+    public int? CampaignId { get; set; }
+    public Campaign? Campaign { get; set; }
+
     public ICollection<WorkshopSchedule> Schedules { get; set; } = new HashSet<WorkshopSchedule>();
     public ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
     public ICollection<WorkshopComparisonItem> ComparisonItems { get; set; } = new HashSet<WorkshopComparisonItem>();
@@ -276,6 +284,10 @@ public class Coupon
 
     public bool IsActive { get; set; } = true;
 
+    [ForeignKey(nameof(RestrictedUser))]
+    public string? RestrictedUserId { get; set; }
+    public ApplicationUser? RestrictedUser { get; set; }
+
     public ICollection<Order> Orders { get; set; } = new HashSet<Order>();
     public ICollection<CouponRedemption> Redemptions { get; set; } = new HashSet<CouponRedemption>();
 }
@@ -301,6 +313,9 @@ public class Campaign
     public DateTime EndDate { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    public ICollection<Artwork> Artworks { get; set; } = new HashSet<Artwork>();
+    public ICollection<WorkshopEvent> WorkshopEvents { get; set; } = new HashSet<WorkshopEvent>();
 }
 
 public class CouponRedemption

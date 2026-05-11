@@ -22,6 +22,7 @@ public class ArtworkController : Controller
             .Include(a => a.Artist)
             .Include(a => a.ArtworkCategory)
             .Include(a => a.Images)
+            .Include(a => a.Campaign)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
 
@@ -33,6 +34,7 @@ public class ArtworkController : Controller
         var artwork = await _context.Artworks
             .Include(a => a.Artist)
             .Include(a => a.ArtworkCategory)
+            .Include(a => a.Campaign)
             .Include(a => a.Images.OrderBy(i => i.DisplayOrder))
             .FirstOrDefaultAsync(a => a.ArtworkId == id);
 
@@ -77,6 +79,24 @@ public class ArtworkController : Controller
         ViewBag.ReviewSort = sort;
         ViewBag.ReviewAverage = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0;
         ViewBag.ReviewCount = reviews.Count;
+
+        artwork.ViewCount++;
+        var viewerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userAgent = Request.Headers.UserAgent.ToString();
+        if (userAgent.Length > 500)
+        {
+            userAgent = userAgent[..500];
+        }
+
+        _context.ArtworkViewLogs.Add(new ArtworkViewLog
+        {
+            ArtworkId = artwork.ArtworkId,
+            ViewerId = string.IsNullOrWhiteSpace(viewerId) ? null : viewerId,
+            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = string.IsNullOrEmpty(userAgent) ? null : userAgent,
+            ViewedAt = DateTime.UtcNow
+        });
+        await _context.SaveChangesAsync();
 
         return View(artwork);
     }

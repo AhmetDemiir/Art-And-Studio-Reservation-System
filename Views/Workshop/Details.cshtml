@@ -16,6 +16,9 @@
     var averageRating = (double)(ViewBag.ReviewAverage ?? 0d);
     var reviewCount = (int)(ViewBag.ReviewCount ?? 0);
     var helpfulVotes = ViewBag.UserHelpfulVotes as HashSet<int> ?? new HashSet<int>();
+    var nowUtc = DateTime.UtcNow;
+    var activeCampaign = Model.Campaign is not null && Model.Campaign.IsActive
+        && Model.Campaign.StartDate <= nowUtc && Model.Campaign.EndDate >= nowUtc;
 }
 
 <div class="row g-4 mb-4">
@@ -35,7 +38,17 @@
                     <div class="alert alert-danger">@errorMessage</div>
                 }
                 <h1 class="h3">@Model.Title</h1>
-                <p class="mb-2"><span class="badge bg-secondary">@Model.WorkshopCategory.Name</span></p>
+                <p class="mb-2">
+                    <span class="badge bg-secondary">@Model.WorkshopCategory.Name</span>
+                    @if (activeCampaign)
+                    {
+                        <span class="badge bg-danger">Kampanyalı</span>
+                    }
+                </p>
+                @if (activeCampaign)
+                {
+                    <p class="small text-muted mb-2">@Model.Campaign!.Title — @(Model.Campaign.IsPercentage ? $"%{Model.Campaign.DiscountValue:0.##} indirim" : Model.Campaign.DiscountValue.ToString("C0"))</p>
+                }
                 <p class="text-muted mb-2">@Model.Location</p>
                 <p>@Model.Description</p>
                 <hr />
@@ -165,33 +178,44 @@
 
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <h3 class="h5 mb-3">Yorum Yap</h3>
-                <form asp-controller="Review" asp-action="AddReview" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="workshopEventId" value="@Model.WorkshopEventId" />
-                    <input type="hidden" name="sort" value="@selectedSort" />
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Puan</label>
-                        <div class="d-flex gap-3">
-                            @for (var i = 1; i <= 5; i++)
-                            {
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="rating" id="rating-work-@i" value="@i" @(i == 5 ? "checked" : null) />
-                                    <label class="form-check-label" for="rating-work-@i">@i</label>
-                                </div>
-                            }
+        var canReview = ViewBag.CanReviewWorkshop as bool? == true;
+        @if (canReview)
+        {
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Yorum Yap</h3>
+                    <p class="small text-muted mb-3">Katıldığınız ve tamamlanan bir seans sonrası değerlendirme yapabilirsiniz.</p>
+                    <form asp-controller="Review" asp-action="AddReview" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="workshopEventId" value="@Model.WorkshopEventId" />
+                        <input type="hidden" name="sort" value="@selectedSort" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Puan</label>
+                            <div class="d-flex gap-3">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating-work-@i" value="@i" @(i == 5 ? "checked" : null) />
+                                        <label class="form-check-label" for="rating-work-@i">@i</label>
+                                    </div>
+                                }
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold" for="work-comment">Yorum</label>
-                        <textarea class="form-control" id="work-comment" name="comment" rows="3" maxlength="2500" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-dark">Yorumu Gönder</button>
-                </form>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="work-comment">Yorum</label>
+                            <textarea class="form-control" id="work-comment" name="comment" rows="3" maxlength="2500" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-dark">Yorumu Gönder</button>
+                    </form>
+                </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="alert alert-info mb-4">
+                Etkinlik yorumu yazmak için bu etkinliğe ait en az bir seansa kayıtlı olmanız ve ilgili seansın bitmiş olması gerekir.
+            </div>
+        }
     }
     else
     {

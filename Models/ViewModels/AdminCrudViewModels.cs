@@ -31,6 +31,8 @@ public class ArtworkManageViewModel
     public string? PrimaryImageUrl { get; set; }
 
     public string? PrimaryImageAltText { get; set; }
+
+    public int? CampaignId { get; set; }
 }
 
 public class WorkshopManageViewModel
@@ -51,10 +53,12 @@ public class WorkshopManageViewModel
     public string? Location { get; set; }
 
     [Range(0.01, 100000000)]
-    public decimal BasePrice { get; set; }
+    public decimal BasePrice { get; set; } = 1000;
 
     [Required]
     public int WorkshopCategoryId { get; set; }
+
+    public int? CampaignId { get; set; }
 
     public bool IsActive { get; set; } = true;
 

@@ -8,13 +8,14 @@
     <div class="d-flex gap-2">
         <a asp-controller="AdminArtwork" asp-action="Index" class="btn btn-outline-primary">Eserleri Yönet</a>
         <a asp-controller="AdminWorkshop" asp-action="Index" class="btn btn-outline-primary">Etkinlikleri Yönet</a>
+        <a asp-controller="AdminCampaign" asp-action="Index" class="btn btn-outline-primary">Kampanyalar</a>
         <a asp-controller="SupportTicket" asp-action="AdminTickets" class="btn btn-dark">Gelen Destek Talepleri</a>
         <a asp-controller="Admin" asp-action="Orders" class="btn btn-outline-dark">Sipariş Raporu</a>
     </div>
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h2 class="h5 mb-3">En Çok Favorilenen Eserler</h2>
@@ -49,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h2 class="h5 mb-3">En Çok Yorum Alan Eserler</h2>
@@ -70,6 +71,41 @@
                             </thead>
                             <tbody>
                                 @foreach (var item in Model.TopReviewedArtworks)
+                                {
+                                    <tr>
+                                        <td><a asp-controller="Artwork" asp-action="Details" asp-route-id="@item.ArtworkId" class="text-decoration-none">@item.Title</a></td>
+                                        <td>@item.ArtistName</td>
+                                        <td class="text-end fw-semibold">@item.Count</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h2 class="h5 mb-3">En Çok Görüntülenen Eserler</h2>
+                @if (!Model.TopViewedArtworks.Any())
+                {
+                    <p class="text-muted mb-0">Veri bulunmuyor.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Eser</th>
+                                    <th>Sanatçı</th>
+                                    <th class="text-end">Görüntülenme</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.TopViewedArtworks)
                                 {
                                     <tr>
                                         <td><a asp-controller="Artwork" asp-action="Details" asp-route-id="@item.ArtworkId" class="text-decoration-none">@item.Title</a></td>

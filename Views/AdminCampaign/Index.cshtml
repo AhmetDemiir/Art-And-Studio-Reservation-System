@@ -1,0 +1,42 @@
+@model IEnumerable<Online_Art_Gallery_and_Studio_Reservation_System.Models.Campaign>
+@{
+    ViewData["Title"] = "Kampanyalar";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Kampanyalar</h1>
+    <a asp-action="Create" class="btn btn-dark">Yeni Kampanya</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Başlık</th>
+                <th>İndirim</th>
+                <th>Tarih aralığı</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.Title</td>
+                    <td>@(c.IsPercentage ? $"%{c.DiscountValue:0.##}" : c.DiscountValue.ToString("C0"))</td>
+                    <td>@c.StartDate.ToLocalTime().ToString("dd MMM yyyy") – @c.EndDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                    <td>
+                        <span class="badge @(c.IsActive ? "bg-success" : "bg-secondary")">@(c.IsActive ? "Aktif" : "Pasif")</span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<p class="text-muted small mb-0">Kampanyayı eser veya etkinliğe <strong>Eserleri Yönet</strong> / <strong>Etkinlikleri Yönet</strong> ekranından bağlayın.</p>

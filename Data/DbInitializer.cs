@@ -20,6 +20,7 @@ public static class DbInitializer
         await SeedRolesAsync(roleManager);
         await SeedAdminUserAsync(userManager);
         await SeedSampleDataAsync(context);
+        await SeedCampaignsAndExclusiveCouponsAsync(context, userManager);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -239,5 +240,74 @@ public static class DbInitializer
 
         context.WorkshopSchedules.AddRange(schedules);
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedCampaignsAndExclusiveCouponsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    {
+        if (!await context.Campaigns.AnyAsync())
+        {
+            var now = DateTime.UtcNow;
+            var campaigns = new List<Campaign>
+            {
+                new()
+                {
+                    Title = "Kış Sanat Sezonu — Eserler",
+                    Description = "Seçili yağlı boya ve akrilik eserlerde kampanya indirimi.",
+                    DiscountValue = 15,
+                    IsPercentage = true,
+                    StartDate = now.AddDays(-7),
+                    EndDate = now.AddDays(60),
+                    IsActive = true
+                },
+                new()
+                {
+                    Title = "Atölye Haftası",
+                    Description = "Seçili atölye etkinliklerinde erken kayıt avantajı.",
+                    DiscountValue = 10,
+                    IsPercentage = true,
+                    StartDate = now.AddDays(-3),
+                    EndDate = now.AddDays(45),
+                    IsActive = true
+                }
+            };
+
+            context.Campaigns.AddRange(campaigns);
+            await context.SaveChangesAsync();
+
+            var artworks = await context.Artworks.OrderBy(a => a.ArtworkId).Take(2).ToListAsync();
+            foreach (var a in artworks)
+            {
+                a.CampaignId = campaigns[0].CampaignId;
+            }
+
+            var workshop = await context.WorkshopEvents.OrderBy(w => w.WorkshopEventId).FirstOrDefaultAsync();
+            if (workshop is not null)
+            {
+                workshop.CampaignId = campaigns[1].CampaignId;
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.Coupons.AnyAsync(c => c.Code == "VIPADMIN"))
+        {
+            var admin = await userManager.FindByEmailAsync("admin@artgallery.local");
+            if (admin is not null)
+            {
+                context.Coupons.Add(new Coupon
+                {
+                    Code = "VIPADMIN",
+                    Description = "Yalnızca admin hesabına özel test indirimi.",
+                    IsPercentage = true,
+                    DiscountValue = 20,
+                    ValidFrom = DateTime.UtcNow.AddDays(-1),
+                    ValidTo = DateTime.UtcNow.AddYears(1),
+                    IsActive = true,
+                    CurrentUsageCount = 0,
+                    RestrictedUserId = admin.Id
+                });
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }

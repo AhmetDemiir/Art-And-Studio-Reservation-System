@@ -47,6 +47,12 @@
                             <label asp-for="MaxUsageCount" class="form-label">Maksimum Kullanim</label>
                             <input asp-for="MaxUsageCount" class="form-control" />
                         </div>
+                        <div class="col-12">
+                            <label asp-for="RestrictedUserEmail" class="form-label">Özel kullanıcı e-postası (isteğe bağlı)</label>
+                            <input asp-for="RestrictedUserEmail" type="email" class="form-control" placeholder="ornek@site.com — boş bırakılırsa herkes kullanabilir" />
+                            <span asp-validation-for="RestrictedUserEmail" class="text-danger"></span>
+                            <div class="form-text">Doldurulursa kupon yalnızca bu e-posta ile kayıtlı kullanıcı tarafından kullanılabilir.</div>
+                        </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">

@@ -109,5 +109,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany(u => u.ReviewResponses)
             .HasForeignKey(r => r.AdminUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Artwork>()
+            .HasOne(a => a.Campaign)
+            .WithMany(c => c.Artworks)
+            .HasForeignKey(a => a.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<WorkshopEvent>()
+            .HasOne(w => w.Campaign)
+            .WithMany(c => c.WorkshopEvents)
+            .HasForeignKey(w => w.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Coupon>()
+            .HasOne(c => c.RestrictedUser)
+            .WithMany()
+            .HasForeignKey(c => c.RestrictedUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

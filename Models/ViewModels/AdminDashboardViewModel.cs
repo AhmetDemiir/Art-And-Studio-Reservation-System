@@ -4,6 +4,7 @@ public class AdminDashboardViewModel
 {
     public List<ArtworkStatItemViewModel> TopFavoritedArtworks { get; set; } = new();
     public List<ArtworkStatItemViewModel> TopReviewedArtworks { get; set; } = new();
+    public List<ArtworkStatItemViewModel> TopViewedArtworks { get; set; } = new();
     public List<WorkshopStatItemViewModel> WorkshopStats { get; set; } = new();
     public List<AdminOrderItemViewModel> RecentOrders { get; set; } = new();
 }

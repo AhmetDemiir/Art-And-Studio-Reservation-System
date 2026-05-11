@@ -1,3 +1,5 @@
+using Online_Art_Gallery_and_Studio_Reservation_System.Models;
+
 namespace Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels;
 
 public class HomeIndexViewModel
@@ -5,6 +7,9 @@ public class HomeIndexViewModel
     public List<Artwork> LatestArtworks { get; set; } = new();
     public List<WorkshopHighlightViewModel> UpcomingWorkshops { get; set; } = new();
     public List<Coupon> ActiveCoupons { get; set; } = new();
+    public List<Campaign> ActiveCampaigns { get; set; } = new();
+    public List<Artwork> CampaignArtworks { get; set; } = new();
+    public List<WorkshopHighlightViewModel> CampaignWorkshops { get; set; } = new();
 }
 
 public class WorkshopHighlightViewModel

@@ -53,6 +53,7 @@ public class AdminArtworkController : Controller
             StockQuantity = model.StockQuantity,
             ArtistId = model.ArtistId,
             ArtworkCategoryId = model.ArtworkCategoryId,
+            CampaignId = model.CampaignId,
             CreatedAt = DateTime.UtcNow
         };
         _context.Artworks.Add(artwork);
@@ -96,6 +97,7 @@ public class AdminArtworkController : Controller
             StockQuantity = artwork.StockQuantity,
             ArtistId = artwork.ArtistId,
             ArtworkCategoryId = artwork.ArtworkCategoryId,
+            CampaignId = artwork.CampaignId,
             PrimaryImageUrl = primaryImage?.ImageUrl,
             PrimaryImageAltText = primaryImage?.AltText
         };
@@ -129,6 +131,7 @@ public class AdminArtworkController : Controller
         artwork.StockQuantity = model.StockQuantity;
         artwork.ArtistId = model.ArtistId;
         artwork.ArtworkCategoryId = model.ArtworkCategoryId;
+        artwork.CampaignId = model.CampaignId;
 
         var primary = artwork.Images.FirstOrDefault(i => i.IsPrimary) ?? artwork.Images.FirstOrDefault();
         if (!string.IsNullOrWhiteSpace(model.PrimaryImageUrl))
@@ -176,5 +179,14 @@ public class AdminArtworkController : Controller
     {
         ViewBag.Artists = new SelectList(await _context.Artists.OrderBy(a => a.FullName).ToListAsync(), nameof(Artist.ArtistId), nameof(Artist.FullName));
         ViewBag.Categories = new SelectList(await _context.ArtworkCategories.OrderBy(c => c.Name).ToListAsync(), nameof(ArtworkCategory.ArtworkCategoryId), nameof(ArtworkCategory.Name));
+
+        var campaignItems = new List<SelectListItem>
+        {
+            new("(Kampanya yok)", "")
+        };
+        campaignItems.AddRange(
+            (await _context.Campaigns.OrderBy(c => c.Title).ToListAsync())
+                .Select(c => new SelectListItem(c.Title, c.CampaignId.ToString())));
+        ViewBag.Campaigns = campaignItems;
     }
 }

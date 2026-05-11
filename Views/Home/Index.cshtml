@@ -12,18 +12,92 @@
     </div>
 </div>
 
+@if (Model.ActiveCampaigns.Any())
+{
+    <section class="mb-4">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 text-primary mb-3">Aktif Kampanyalar</h2>
+                <div class="row g-3">
+                    @foreach (var camp in Model.ActiveCampaigns)
+                    {
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h3 class="h6 mb-2">@camp.Title</h3>
+                                <p class="small text-muted mb-2">@camp.Description</p>
+                                <p class="mb-0 small">
+                                    İndirim: <strong>@(camp.IsPercentage ? $"%{camp.DiscountValue:0.##}" : camp.DiscountValue.ToString("C0"))</strong>
+                                    · @camp.StartDate.ToLocalTime().ToString("dd MMM") – @camp.EndDate.ToLocalTime().ToString("dd MMM yyyy")
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+@if (Model.CampaignArtworks.Any() || Model.CampaignWorkshops.Any())
+{
+    <section class="mb-4">
+        <div class="card border-warning shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Kampanyalı Eser ve Etkinlikler</h2>
+                <div class="row g-3">
+                    @foreach (var artwork in Model.CampaignArtworks)
+                    {
+                        var imageUrl = artwork.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
+                            ?? artwork.Images.FirstOrDefault()?.ImageUrl
+                            ?? "https://via.placeholder.com/400x250?text=Artwork";
+                        <div class="col-md-4 col-lg-2">
+                            <div class="border rounded overflow-hidden h-100">
+                                <img src="@imageUrl" class="w-100" style="height: 100px; object-fit: cover;" alt="" />
+                                <div class="p-2">
+                                    <div class="small fw-semibold text-truncate">@artwork.Title</div>
+                                    <span class="badge bg-danger small">Kampanya</span>
+                                    <a asp-controller="Artwork" asp-action="Details" asp-route-id="@artwork.ArtworkId" class="d-block small mt-1">Detay</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @foreach (var item in Model.CampaignWorkshops)
+                    {
+                        var w = item.Workshop;
+                        <div class="col-md-4 col-lg-2">
+                            <div class="border rounded overflow-hidden h-100">
+                                <img src="@(w.CoverImageUrl ?? "https://via.placeholder.com/400x250?text=Workshop")" class="w-100" style="height: 100px; object-fit: cover;" alt="" />
+                                <div class="p-2">
+                                    <div class="small fw-semibold text-truncate">@w.Title</div>
+                                    <span class="badge bg-danger small">Kampanya</span>
+                                    <a asp-controller="Workshop" asp-action="Details" asp-route-id="@w.WorkshopEventId" class="d-block small mt-1">Detay</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
 @if (Model.ActiveCoupons.Any())
 {
     <section class="mb-4">
         <div class="card border-success shadow-sm">
             <div class="card-body">
-                <h2 class="h5 text-success mb-3"><i class="bi bi-megaphone-fill me-2"></i>Fırsat ve Kampanyalar</h2>
+                <h2 class="h5 text-success mb-3"><i class="bi bi-megaphone-fill me-2"></i>İndirim Kuponları</h2>
+                <p class="small text-muted mb-2">Genel kuponlar herkese; hesabınıza özel kuponlar yalnızca giriş yaptığınızda listelenir.</p>
                 <div class="row g-2">
                     @foreach (var coupon in Model.ActiveCoupons)
                     {
                         <div class="col-md-4">
                             <div class="alert alert-success mb-0 py-2">
                                 <div class="fw-semibold">Kod: @coupon.Code</div>
+                                @if (!string.IsNullOrEmpty(coupon.RestrictedUserId))
+                                {
+                                    <div class="small text-dark">Özel fırsat (hesabınıza tanımlı)</div>
+                                }
                                 <div class="small">
                                     İndirim:
                                     @(coupon.IsPercentage ? $"{coupon.DiscountValue:0.##}%" : coupon.DiscountValue.ToString("C0"))

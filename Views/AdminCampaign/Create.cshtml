@@ -1,0 +1,45 @@
+@model Online_Art_Gallery_and_Studio_Reservation_System.Models.ViewModels.CampaignManageViewModel
+@{
+    ViewData["Title"] = "Yeni Kampanya";
+}
+
+<h1 class="h4 mb-3">Yeni Kampanya</h1>
+
+<form asp-action="Create" method="post" class="card card-body shadow-sm">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger mb-2"></div>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label asp-for="Title" class="form-label">Başlık</label>
+            <input asp-for="Title" class="form-control" />
+        </div>
+        <div class="col-md-4 form-check mt-5 ps-4">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label">Aktif</label>
+        </div>
+        <div class="col-12">
+            <label asp-for="Description" class="form-label">Açıklama</label>
+            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="col-md-4 form-check ms-2">
+            <input asp-for="IsPercentage" class="form-check-input" />
+            <label asp-for="IsPercentage" class="form-check-label">Yüzde indirim</label>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="DiscountValue" class="form-label">İndirim değeri</label>
+            <input asp-for="DiscountValue" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="StartDate" class="form-label">Başlangıç</label>
+            <input asp-for="StartDate" type="datetime-local" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="EndDate" class="form-label">Bitiş</label>
+            <input asp-for="EndDate" type="datetime-local" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-ddTHH:mm")" />
+        </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-dark">Kaydet</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Listeye dön</a>
+    </div>
+</form>

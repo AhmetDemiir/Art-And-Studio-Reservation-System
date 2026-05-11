@@ -17,6 +17,9 @@
 <div class="row g-4">
     @foreach (var artwork in Model)
     {
+        var now = DateTime.UtcNow;
+        var activeCampaign = artwork.Campaign is not null && artwork.Campaign.IsActive
+            && artwork.Campaign.StartDate <= now && artwork.Campaign.EndDate >= now;
         var imageUrl = artwork.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl
             ?? artwork.Images.FirstOrDefault()?.ImageUrl
             ?? "https://via.placeholder.com/800x500?text=Artwork";
@@ -25,6 +28,10 @@
                 <img src="@imageUrl" class="card-img-top" alt="@artwork.Title" style="height: 220px; object-fit: cover;" />
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">@artwork.Title</h5>
+                    @if (activeCampaign)
+                    {
+                        <p class="mb-2"><span class="badge bg-danger">Kampanyalı</span> <small class="text-muted">@artwork.Campaign!.Title</small></p>
+                    }
                     <p class="text-muted mb-1">@artwork.Artist.FullName</p>
                     <p class="mb-2"><small class="text-muted">@artwork.ArtworkCategory.Name</small></p>
                     <p class="card-text text-truncate">@artwork.Description</p>
